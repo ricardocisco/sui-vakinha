@@ -76,6 +76,12 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
+  --background-10: #0e0f14;
+  --background-20: #14151b;
+  --background-30: #202127;
+  --color-green-text: #00c278;
+  --color-blue-text: #4c94ff;
+  --color-purple-text: #9489fc;
 }
 
 .dark {
@@ -119,4 +125,8 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+body {
+  background: var(--background-10);
 }
