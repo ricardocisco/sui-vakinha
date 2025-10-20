@@ -78,7 +78,7 @@ export function VakinhaDetailCard({ vakinhaId }: VakinhaDetailCardProps) {
         )}
       </div>
 
-      <div className="p-8 space-y-6">
+      <div className="px-4 py-2 space-y-3">
         {/* Título e Descrição */}
         <div>
           <h1 className="text-4xl font-bold text-white mb-4">{vakinha.name}</h1>
@@ -93,7 +93,7 @@ export function VakinhaDetailCard({ vakinhaId }: VakinhaDetailCardProps) {
             <span className="text-gray-400">Progresso</span>
             <span className="text-white font-bold">{progress.toFixed(1)}%</span>
           </div>
-          <div className="w-full bg-gray-700 rounded-full h-6 overflow-hidden">
+          <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
             <div
               className="bg-gradient-to-r from-blue-500 to-purple-500 h-full transition-all duration-500"
               style={{ width: `${progress}%` }}
@@ -105,11 +105,11 @@ export function VakinhaDetailCard({ vakinhaId }: VakinhaDetailCardProps) {
         <div className="grid grid-cols-2 gap-6">
           <div className="bg-[var(--background-10)] p-6 rounded-xl">
             <p className="text-gray-400 text-sm mb-2">Arrecadado</p>
-            <p className="text-white font-bold text-3xl">{amountInSUI} SUI</p>
+            <p className="text-white font-bold text-2xl">{amountInSUI} SUI</p>
           </div>
           <div className="bg-[var(--background-10)] p-6 rounded-xl">
             <p className="text-gray-400 text-sm mb-2">Meta</p>
-            <p className="text-white font-bold text-3xl">{goalInSUI} SUI</p>
+            <p className="text-white font-bold text-2xl">{goalInSUI} SUI</p>
           </div>
         </div>
 
@@ -123,13 +123,13 @@ export function VakinhaDetailCard({ vakinhaId }: VakinhaDetailCardProps) {
               placeholder="Valor em SUI"
               value={donationAmount}
               onChange={(e) => setDonationAmount(e.target.value)}
-              className="w-full px-4 py-3 bg-[var(--background-20)] text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none text-lg"
+              className="w-full px-4 py-2 bg-[var(--background-20)] text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none text-lg"
               disabled={isDonating}
             />
             <button
               onClick={handleDonate}
               disabled={isDonating}
-              className="w-full py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:bg-gray-600 text-lg"
+              className="w-full py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:bg-gray-600 text-lg"
             >
               {isDonating ? "Doando..." : "💝 Doar agora"}
             </button>

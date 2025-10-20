@@ -13,7 +13,6 @@ export default function Navbar() {
         <p className="text-white text-lg font-semibold">Crypto Funding</p>
       </Link>
       <ul className="flex gap-4 text-white font-semibold">
-        <Link href="vakinhas">Vakinhas</Link>
         <Link href="/vakinha/create">Criar uma nova</Link>
       </ul>
       <div>
