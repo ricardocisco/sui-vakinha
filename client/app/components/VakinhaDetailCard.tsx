@@ -6,6 +6,8 @@ import { useVakinha } from "../hooks/useVakinha";
 import { useDonate } from "../hooks/useDonate";
 import { useWithdraw } from "../hooks/useWithdrawn";
 import Image from "next/image";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
 
 interface VakinhaDetailCardProps {
   vakinhaId: string;
@@ -19,6 +21,8 @@ export function VakinhaDetailCard({ vakinhaId }: VakinhaDetailCardProps) {
   const [donationAmount, setDonationAmount] = useState("");
   const [isDonating, setIsDonating] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusType, setStatusType] = useState<"success" | "error" | "">("");
 
   if (loading) {
     return <div className="text-white">Carregando...</div>;
@@ -30,13 +34,31 @@ export function VakinhaDetailCard({ vakinhaId }: VakinhaDetailCardProps) {
 
   const handleDonate = async () => {
     if (!donationAmount || Number(donationAmount) <= 0) {
+      setStatusMessage("Insira um valor válido para doação.");
+      setStatusType("error");
       return;
     }
 
     setIsDonating(true);
+    setStatusMessage("");
+    setStatusType("");
     const amountInMist = Math.floor(Number(donationAmount) * 1_000_000_000);
 
-    await donate(vakinhaId, amountInMist);
+    await donate(
+      vakinhaId,
+      amountInMist,
+      () => {
+        setIsDonating(false);
+        setStatusMessage("✅ Doação realizada com sucesso!");
+        setStatusType("success");
+        setDonationAmount("");
+      },
+      (err) => {
+        setIsDonating(false);
+        setStatusMessage(err.message);
+        setStatusType("error");
+      }
+    );
   };
 
   const handleWithdraw = async () => {
@@ -57,7 +79,7 @@ export function VakinhaDetailCard({ vakinhaId }: VakinhaDetailCardProps) {
   )}`;
 
   return (
-    <div className="bg-[var(--background-20)] rounded-2xl overflow-hidden shadow-2xl">
+    <div className="bg-[var(--background-20)] rounded-2xl overflow-hidden shadow-2xl font-sans">
       {/* Imagem grande */}
       <div className="relative h-96 w-full overflow-hidden bg-gray-800">
         <Image
@@ -117,7 +139,7 @@ export function VakinhaDetailCard({ vakinhaId }: VakinhaDetailCardProps) {
         {vakinha.isActive && !isOwner && (
           <div className="bg-[var(--background-10)] p-6 rounded-xl space-y-4">
             <h3 className="text-xl font-bold text-white">Fazer uma doação</h3>
-            <input
+            <Input
               type="number"
               step="0.01"
               placeholder="Valor em SUI"
@@ -126,13 +148,13 @@ export function VakinhaDetailCard({ vakinhaId }: VakinhaDetailCardProps) {
               className="w-full px-4 py-2 bg-[var(--background-20)] text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none text-lg"
               disabled={isDonating}
             />
-            <button
+            <Button
               onClick={handleDonate}
               disabled={isDonating}
-              className="w-full py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:bg-gray-600 text-lg"
+              className="w-full py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:bg-gray-600 text-lg cursor-pointer"
             >
               {isDonating ? "Doando..." : "💝 Doar agora"}
-            </button>
+            </Button>
           </div>
         )}
 
@@ -149,6 +171,15 @@ export function VakinhaDetailCard({ vakinhaId }: VakinhaDetailCardProps) {
 
         {/* Info do Owner */}
         <div className="pt-4 border-t border-gray-700">
+          {statusMessage && (
+            <div
+              className={`text-center font-semibold ${
+                statusType === "error" ? "text-red-500" : "text-green-400"
+              }`}
+            >
+              {statusMessage}
+            </div>
+          )}
           <p className="text-sm text-gray-400">
             Criado por:{" "}
             <span className="text-white font-mono">{vakinha.owner}</span>
