@@ -68,7 +68,7 @@ export function useDonate() {
         `https://testnet.suivision.xyz/txblock/${result.digest}`
       );
 
-      if (onSuccess) onSuccess();
+      if (onSuccess) onSuccess(result.digest);
     } catch (error: any) {
       console.error("Erro ao doar:", error);
 

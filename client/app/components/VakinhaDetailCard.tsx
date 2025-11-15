@@ -23,6 +23,7 @@ export function VakinhaDetailCard({ vakinhaId }: VakinhaDetailCardProps) {
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [statusType, setStatusType] = useState<"success" | "error" | "">("");
+  const [txDigest, setTxDigest] = useState("");
 
   if (loading) {
     return <div className="text-white">Carregando...</div>;
@@ -47,11 +48,12 @@ export function VakinhaDetailCard({ vakinhaId }: VakinhaDetailCardProps) {
     await donate(
       vakinhaId,
       amountInMist,
-      () => {
+      (digest) => {
         setIsDonating(false);
         setStatusMessage("✅ Doação realizada com sucesso!");
         setStatusType("success");
         setDonationAmount("");
+        setTxDigest(digest);
       },
       (err) => {
         setIsDonating(false);
