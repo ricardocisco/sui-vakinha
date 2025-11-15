@@ -14,13 +14,14 @@ interface VakinhaDetailCardProps {
 }
 
 export function VakinhaDetailCard({ vakinhaId }: VakinhaDetailCardProps) {
-  const { vakinha, loading } = useVakinha(vakinhaId);
+  const { vakinha, loading, refetch } = useVakinha(vakinhaId);
   const { donate } = useDonate();
   const { withdraw } = useWithdraw();
   const currentAccount = useCurrentAccount();
   const [donationAmount, setDonationAmount] = useState("");
   const [isDonating, setIsDonating] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [statusType, setStatusType] = useState<"success" | "error" | "">("");
   const [txDigest, setTxDigest] = useState("");
@@ -45,43 +46,82 @@ export function VakinhaDetailCard({ vakinhaId }: VakinhaDetailCardProps) {
     setStatusType("");
     const amountInMist = Math.floor(Number(donationAmount) * 1_000_000_000);
 
-    await donate(
-      vakinhaId,
-      amountInMist,
-      (digest) => {
-        setIsDonating(false);
-        setStatusMessage("✅ Doação realizada com sucesso!");
-        setStatusType("success");
-        setDonationAmount("");
-        setTxDigest(digest);
-      },
-      (err) => {
-        setIsDonating(false);
-        setStatusMessage(err.message);
-        setStatusType("error");
-      }
-    );
+    try {
+      const digest = await donate(
+        vakinhaId,
+        amountInMist,
+        (digestResult) => {
+          setIsDonating(false);
+          setStatusMessage("✅ Doação realizada com sucesso!");
+          setStatusType("success");
+          setDonationAmount("");
+          setTxDigest(digestResult);
+          // Recarregar os dados da vakinha após doação bem-sucedida
+          setIsRefreshing(true);
+          setTimeout(async () => {
+            await refetch();
+            setIsRefreshing(false);
+          }, 1000);
+        },
+        (err) => {
+          setIsDonating(false);
+          setStatusMessage(err.message);
+          setStatusType("error");
+        },
+      );
+    } catch (error: any) {
+      setIsDonating(false);
+      setStatusMessage(error.message || "Erro na doação");
+      setStatusType("error");
+    }
   };
 
   const handleWithdraw = async () => {
     setIsWithdrawing(true);
-    await withdraw(vakinhaId);
+    setStatusMessage("");
+    setStatusType("");
+
+    await withdraw(
+      vakinhaId,
+      () => {
+        setIsWithdrawing(false);
+        setStatusMessage("✅ Saque realizado com sucesso!");
+        setStatusType("success");
+        // Recarregar os dados da vakinha após saque bem-sucedido
+        setIsRefreshing(true);
+        setTimeout(async () => {
+          await refetch();
+          setIsRefreshing(false);
+        }, 1000);
+      },
+      (err) => {
+        setIsWithdrawing(false);
+        setStatusMessage(err.message);
+        setStatusType("error");
+      },
+    );
   };
 
   const progress = Math.min(
     (vakinha.amountDonated / vakinha.goalAmount) * 100,
-    100
+    100,
   );
   const isOwner = currentAccount?.address === vakinha.owner;
   const amountInSUI = (vakinha.amountDonated / 1_000_000_000).toFixed(2);
   const goalInSUI = (vakinha.goalAmount / 1_000_000_000).toFixed(2);
 
   const imageUrl = `/api/walrus-image?blobId=${encodeURIComponent(
-    vakinha.imageUrl
+    vakinha.imageUrl,
   )}`;
 
   return (
-    <div className="bg-[var(--background-20)] rounded-2xl overflow-hidden shadow-2xl font-sans">
+    <div className="bg-[var(--background-20)] rounded-2xl overflow-hidden shadow-2xl font-sans relative">
+      {/* Indicador de refresh */}
+      {isRefreshing && (
+        <div className="absolute top-4 right-4 z-10 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold animate-pulse">
+          🔄 Atualizando...
+        </div>
+      )}
       {/* Imagem grande */}
       <div className="relative h-96 w-full overflow-hidden bg-gray-800">
         <Image
@@ -127,9 +167,13 @@ export function VakinhaDetailCard({ vakinhaId }: VakinhaDetailCardProps) {
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-6">
-          <div className="bg-[var(--background-10)] p-6 rounded-xl">
+          <div className="bg-[var(--background-10)] p-6 rounded-xl relative">
             <p className="text-gray-400 text-sm mb-2">Arrecadado</p>
-            <p className="text-white font-bold text-2xl">{amountInSUI} SUI</p>
+            <p
+              className={`text-white font-bold text-2xl transition-opacity ${isRefreshing ? "opacity-50" : "opacity-100"}`}
+            >
+              {amountInSUI} SUI
+            </p>
           </div>
           <div className="bg-[var(--background-10)] p-6 rounded-xl">
             <p className="text-gray-400 text-sm mb-2">Meta</p>

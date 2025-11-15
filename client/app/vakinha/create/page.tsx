@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
 import {
   Form,
@@ -10,7 +11,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage,
 } from "@/app/components/ui/form";
 import { Input } from "@/app/components/ui/input";
 import { Button } from "@/app/components/ui/button";
@@ -28,22 +29,25 @@ const formSchema = z.object({
     .refine((file) => file.size <= 5000000, "A imagem deve ter no máximo 5MB")
     .refine(
       (file) => ["image/jpeg", "image/png", "image/webp"].includes(file.type),
-      "Apenas imagens JPG, PNG ou WEBP são permitidas"
-    )
+      "Apenas imagens JPG, PNG ou WEBP são permitidas",
+    ),
 });
 
 export default function CreateVakinhaPage() {
   const { createVakinha, isLoading, isUploading, isCreating, blobId } =
     useCreateVakinha();
   const [imagePreview, setImagePreview] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       description: "",
       goal: "",
-      image: undefined
-    }
+      image: undefined,
+    },
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -66,12 +70,25 @@ export default function CreateVakinhaPage() {
       (vakinhaId) => {
         console.log("🎉 Vakinha criada! ID:", vakinhaId);
 
+        setSuccessMessage("✅ Vakinha criada com sucesso! Redirecionando...");
+        setErrorMessage("");
+
         form.reset();
         setImagePreview("");
+
+        // Sinalizar para outras páginas atualizarem a lista
+        localStorage.setItem("vakinhaListNeedsRefresh", "true");
+
+        // Redirecionar para a página da vakinha criada após 2 segundos
+        setTimeout(() => {
+          router.push(`/vakinha/campaign/${vakinhaId}`);
+        }, 2000);
       },
       (error) => {
         console.error("❌ Erro:", error);
-      }
+        setErrorMessage(error.message || "Erro ao criar vakinha");
+        setSuccessMessage("");
+      },
     );
   };
 
@@ -90,8 +107,7 @@ export default function CreateVakinhaPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[var(--background-10)] text-white">
       <Navbar />
-
-      <div className="flex flex-1 items-center justify-center px-4">
+      <div className="flex flex-1 items-center justify-center py-4">
         <div className="bg-[var(--background-20)] p-6 rounded-2xl w-full max-w-md shadow-lg">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -174,6 +190,7 @@ export default function CreateVakinhaPage() {
                       <Input
                         type="file"
                         accept="image/jpeg,image/png,image/webp"
+                        className="text-white"
                         disabled={isLoading}
                         onChange={(e) => {
                           const file = e.target.files?.[0];
@@ -200,7 +217,7 @@ export default function CreateVakinhaPage() {
                     alt="Preview"
                     height={100}
                     width={100}
-                    className="w-full rounded-lg border border-gray-600"
+                    className="w-full  rounded-lg border border-gray-600"
                   />
                 </div>
               )}
@@ -234,13 +251,30 @@ export default function CreateVakinhaPage() {
                 </div>
               )}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full bg-[var(--color-green-text)]/80 hover:bg-[var(--color-green-text)]/40 transition-colors duration-200"
+                disabled={isLoading}
+              >
                 {isUploading
                   ? "Enviando imagem..."
                   : isCreating
-                  ? "Criando vakinha..."
-                  : "Criar Vakinha"}
+                    ? "Criando vakinha..."
+                    : "✨ Criar Vakinha"}
               </Button>
+
+              {/* Mensagens de status */}
+              {successMessage && (
+                <div className="text-green-400 text-center text-sm font-semibold">
+                  {successMessage}
+                </div>
+              )}
+
+              {errorMessage && (
+                <div className="text-red-400 text-center text-sm font-semibold">
+                  {errorMessage}
+                </div>
+              )}
             </form>
           </Form>
         </div>

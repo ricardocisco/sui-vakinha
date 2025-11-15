@@ -12,7 +12,7 @@ export function useDonate() {
     vakinhaId: string,
     donationAmount: number,
     onSuccess?: () => void,
-    onError?: (error: Error) => void
+    onError?: (error: Error) => void,
   ) => {
     try {
       const tx = new Transaction();
@@ -21,11 +21,11 @@ export function useDonate() {
 
       tx.moveCall({
         target: `${PACKAGE_ID}::vakinha::donate`,
-        arguments: [tx.object(vakinhaId), coin, tx.pure.u64(donationAmount)]
+        arguments: [tx.object(vakinhaId), coin, tx.pure.u64(donationAmount)],
       });
 
       const result = await signAndExecuteTransaction({
-        transaction: tx
+        transaction: tx,
       });
 
       console.log("📋 Digest:", result.digest);
@@ -36,8 +36,8 @@ export function useDonate() {
         options: {
           showEffects: true,
           showEvents: true,
-          showObjectChanges: true
-        }
+          showObjectChanges: true,
+        },
       });
 
       console.log("📦 Detalhes da transação:", txDetails);
@@ -55,7 +55,7 @@ export function useDonate() {
 
         if (error.includes("InsufficientCoinBalance")) {
           throw new Error(
-            "Saldo insuficiente na carteira. Você precisa ter mais SUI para realizar esta doação + pagar o gas."
+            "Saldo insuficiente na carteira. Você precisa ter mais SUI para realizar esta doação + pagar o gas.",
           );
         }
 
@@ -65,10 +65,11 @@ export function useDonate() {
       console.log("✅ Doação realizada com sucesso!");
       console.log(
         "🔗 Ver transação:",
-        `https://testnet.suivision.xyz/txblock/${result.digest}`
+        `https://testnet.suivision.xyz/txblock/${result.digest}`,
       );
 
       if (onSuccess) onSuccess(result.digest);
+      return result.digest;
     } catch (error: any) {
       console.error("Erro ao doar:", error);
 

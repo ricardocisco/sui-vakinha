@@ -1,12 +1,32 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useAllVakinhas } from "../hooks/useAllVakinhas";
 import { VakinhaCard } from "./VakinhaCard";
 
 export default function VakinhaHero({ searchTerm }: { searchTerm: string }) {
   const { vakinhas, loading, error, refetch } = useAllVakinhas();
 
+  // Escutar mudanças no localStorage para atualizar lista quando nova vakinha é criada
+  useEffect(() => {
+    const checkForRefresh = () => {
+      const needsRefresh = localStorage.getItem("vakinhaListNeedsRefresh");
+      if (needsRefresh === "true") {
+        localStorage.removeItem("vakinhaListNeedsRefresh");
+        refetch();
+      }
+    };
+
+    // Verificar imediatamente
+    checkForRefresh();
+
+    // Verificar periodicamente
+    const interval = setInterval(checkForRefresh, 1000);
+
+    // Cleanup
+    return () => clearInterval(interval);
+  }, [refetch]);
+
   const vakinhaFilter = vakinhas.filter((vakinha) =>
-    vakinha.name.toLowerCase().includes(searchTerm.toLowerCase())
+    vakinha.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   if (loading) {
