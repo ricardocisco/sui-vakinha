@@ -43,5 +43,5 @@ Aqui, qualquer pessoa pode criar campanhas, receber doações em criptomoedas e 
 
 ### 1. Clone o projeto
 ```bash
-https://github.com/ricardocisco/sui-bootcamp.git
-cd vakinha-crypto
+https://github.com/ricardocisco/sui-vakinha.git
+cd sui-vakinha
